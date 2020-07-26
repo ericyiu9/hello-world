@@ -1,0 +1,292 @@
+/* 
+The following code was from an assignment where I had to implement 
+different sort algorithms including counting, radix, shell, hibbard, merge...
+and compare their complexities. The main method and all the helper methods 
+for the purpose of testing my algorithms were provided 
+by the instructor at the time 
+*/
+
+/*
+THIS CODE WAS MY OWN WORK, IT WAS WRITTEN WITHOUT CONSULTING ANY
+SOURCES OUTSIDE OF THOSE APPROVED BY THE INSTRUCTOR. _Chun Yin Eric Yiu_
+*/
+import java.text.DecimalFormat;
+import java.util.Arrays;
+public class Sorting {
+	
+	public static void countingSort(long[] a) {
+		int n = a.length;
+		// create an "output" array b that will store the sorted elements
+		long[] b = new long[n];
+		
+		// finds the maximum value in the array a
+		int k = (int) a[0];
+		for (int i = 1; i < n; i++) {
+			if (a[i] > k) k = (int) a[i];
+		}
+		// creates a counting array that counts the frequency of each long
+		long[] c = new long[k + 1];
+
+		//initialize the array as 0
+		for (int i = 0; i < k; i++) { c[i] = 0;}
+
+		// implementation of given pseudocodes
+		for( int j = 0; j < n; ++j) {
+			++c[ (int) a[j] ];
+		}
+		for( int i = 1; i <= k; ++i) {
+			c[i] += c[i - 1];
+		}
+		for( int j = n - 1; j >= 0; j--) {
+			b[ (int) c[ (int) a[j]] - 1] = a[j];
+			--c[ (int) a[j]];
+		}
+		//copies the sorted array b back to a since this is a void method
+		for (int i = 0; i < n; i++) {
+			a[i] = b[i];
+		}
+	}
+
+	public static void radixSort(long[] a) {
+		// find max, determine its n in 10^n
+		int k = (int) a[0];
+		for (int i = 1; i < a.length; i++) {
+			if (a[i] > k) k = (int) a[i];
+		}
+		int n = 1;
+		while (k > 1) {
+			k = k / 10;
+			n++;
+		}
+
+		int l = a.length;
+		long[] b = new long[a.length];
+		int[] c = new int[10];
+
+ 		for (int m = 1; m <= n; m++) {
+ 		int q = (int) Math.pow(10, m);
+ 		// initialize c
+			for (int i = 0; i < 10; i++) { c[i] = 0;}
+
+			for( int j = 0; j < l; j++) {
+				c[ ((int) a[j] % q ) / (q / 10) ] += 1;
+			}
+			for( int i = 1; i < 10; i++) {
+				c[i] += c[i - 1];
+			}
+
+			for( int j = l - 1; j >= 0; j--) {
+				int curr = ((int) a[j] % q) / (q / 10);
+				b[c[curr]- 1] = a[j];
+				c[curr] -= 1;
+			}
+			
+			for (int i = 0; i < l; i++) {
+			a[i] = b[i];
+			}
+		}
+	}
+
+	public static void shellSort(long[] a) {
+	
+		int max = (int) a[0];
+		for (int i = 1; i < a.length; i++) {
+			if (a[i] > max) max = (int) a[i];
+		}
+		int n = a.length;
+		int[] hib = hibbard(n);
+		int j = 0;
+		int key = 0;
+		int h = 0;
+		for (int k = hib.length - 1; k >= 0; k--) {
+			h = hib[k];
+			for (int i = h; i <= n - 1; i++) {
+				key = (int) a[i];
+				j = i;
+				while (j >= h && a[ j- h ] > key) {
+					a[j] = a[j - h];
+					j = j - h;
+				}
+			a[j] = key;
+			}
+		}
+
+	}
+
+	public static int[] hibbard(int maxindex) {
+		int k = 0;
+		while (Math.pow(2, k) - 1 <= maxindex) { 
+			k++; 
+		}
+		int [] b = new int[k];
+		k = 0;
+		while (Math.pow(2, k) - 1 <= maxindex) { 
+			b[k] = (int) Math.pow(2, k) - 1;
+			k++; 
+		}
+		return b;
+	}
+
+	//-------------------------------------------------------------
+	//------- Below is an implementation of Selection Sort --------
+	//-------------------------------------------------------------		
+	public static void SelectionSort(long[] a) {
+		int N = a.length;
+	    for (int i = 0; i < N; i++) {
+	    	int min = i;
+	        for (int j = i+1; j < N; j++) {
+	        	if (a[j] < a[min]) min = j;
+	        }
+	        exch(a, i, min);
+	    }
+	}
+	
+	
+	//-----------------------------------------------------------------------
+	//---------- Below is an implementation of Insertion Sort ----------
+	//-----------------------------------------------------------------------
+	public static void InsertionSort(long[] a) {
+        int N = a.length;
+        for (int i = 0; i < N; i++) {
+            for (int j = i; j > 0 && a[j] < a[j-1]; j--) {
+                exch(a, j, j-1);
+            }
+        }
+	}
+
+
+	//-----------------------------------------------------------------------
+	//---------- Below is an implementation of recursive MergeSort ----------
+	//-----------------------------------------------------------------------
+    private static void merge(long[] a, long[] aux, int lo, int mid, int hi) {
+
+        // copy to aux[]
+        for (int k = lo; k <= hi; k++) {
+            aux[k] = a[k]; 
+        }
+
+        // merge back to a[]
+        int i = lo, j = mid+1;
+        for (int k = lo; k <= hi; k++) {
+            if      (i > mid)           a[k] = aux[j++];
+            else if (j > hi)            a[k] = aux[i++];
+            else if (aux[j] < aux[i]) 	a[k] = aux[j++];
+            else                        a[k] = aux[i++];
+        }
+    }
+
+    
+    // mergesort a[lo..hi] using auxiliary array aux[lo..hi]
+    private static void sort(long[] a, long[] aux, int lo, int hi) {
+        if (hi <= lo) return;
+        int mid = lo + (hi - lo) / 2;
+        sort(a, aux, lo, mid);
+        sort(a, aux, mid + 1, hi);
+        merge(a, aux, lo, mid, hi);
+    }
+
+    public static void MergeSort(long[] a) {
+        long[] aux = new long[a.length];
+        sort(a, aux, 0, a.length-1);
+    }
+    
+	//------------------------------------------------------
+	//---------- below are several helper methods ----------
+	//------------------------------------------------------
+	
+	// This tests whether your sorted result is correct by comparing it to reference result
+	public static boolean testSort(long[] a) {
+		long[] a2 = new long[a.length];
+		System.arraycopy(a, 0, a2, 0, a.length);
+		Arrays.sort(a);
+		for(int i = 0; i < a.length; i++)
+			if(a2[i] != a[i]) 
+				return false;
+		return true;
+	}
+	
+	
+	// This creates an array with n randomly generated elements between (0, n*10]
+	private static long[] randArray(int n) {
+		long[] rand = new long[n];
+		for(int i=0; i<n; i++)
+			rand[i] = (int) (Math.random() * n * 10);
+		return rand;
+	}
+	
+	private static void startTimer() { 
+		timestamp = System.nanoTime();
+	}
+	
+	private static double endTimer() {
+		return (System.nanoTime() - timestamp)/1000000.0;
+	}
+	        
+    // exchange a[i] and a[j]
+    private static void exch(long[] a, int i, int j) {
+        long swap = a[i];
+        a[i] = a[j];
+        a[j] = swap;
+    }
+	
+	private static long timestamp;
+	
+	//---------------------------------------------
+	//---------- This is the main method ----------
+	//---------------------------------------------		
+	public static void main(String[] args) {
+	
+		// run experiments
+		final int SELECT = 0, INSERT = 1, MERGE = 2, COUNT = 3, RADIX = 4, SHELL = 5;
+		int[] algorithms = {SELECT, INSERT, MERGE, COUNT, RADIX, SHELL};
+		
+		// max defines the maximum size of the array to be tested, which is 2^max
+		// runs defines the number of rounds to be performed per test, in order to get an average running time.
+		int max = 15, runs = 5;
+		double[][] stats = new double[algorithms.length][max];
+		for(int i=0; i<algorithms.length; i++) {             //loop through each sorting algorithm
+			switch(i) {
+				case SELECT: System.out.print("Running Selection Sort ..."); break;
+				case INSERT: System.out.print("Running Insertion Sort ..."); break;
+				case MERGE: System.out.print("Running MergeSort ..."); break;
+				case COUNT: System.out.print("Running Counting Sort ..."); break;
+				case RADIX: System.out.print("Running Radix Sort ..."); break;
+				case SHELL: System.out.print("Running Shellsort ..."); break;
+			}
+			for(int j=0; j<max; j++) {        //loop through each array size 
+				double avg = 0;
+				for(int k=0; k<runs; k++) {    // loop through each run
+					long[] a = randArray((int) Math.pow(2, j+1));
+					startTimer();
+					switch(i) {
+						case SELECT: SelectionSort(a); break;
+						case INSERT: InsertionSort(a); break;
+						case MERGE: MergeSort(a); break;
+						case COUNT: countingSort(a); break;
+						case RADIX: radixSort(a); break;
+						case SHELL: shellSort(a); break;
+					}
+					avg += endTimer();
+					if (testSort(a) == false)
+						System.out.println("The sorting is INCORRECT!" + "(N=" + a.length + ", round=" + k + ").");
+				}
+				avg /= runs;
+				stats[i][j] = avg;
+			}
+			System.out.println("done.");
+		}
+		
+		DecimalFormat format = new DecimalFormat("0.0000");
+		System.out.println();
+		System.out.println("Average running time:");
+		System.out.println("N\t Selection Sort\t Insertion Sort\t MergeSort\t Counting Sort\t Radix Sort\t Shellsort");
+		for(int i=0; i<stats[0].length; i++) {
+			System.out.print((int) Math.pow(2, i+1) + "\t  ");
+			for(int j=0; j<stats.length; j++) {
+				System.out.print(format.format(stats[j][i]) + "\t  ");
+			}
+			System.out.println();
+		}
+	}
+	
+}
